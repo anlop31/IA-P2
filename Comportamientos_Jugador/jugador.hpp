@@ -71,6 +71,9 @@ class ComportamientoJugador : public Comportamiento {
 
     list<Action> anchuraSoloJugador_V2 (const stateN0 &inicio, const ubicacion &final,
 									const vector<vector<unsigned char>> &mapa);
+    list<Action> anchuraSoloJugador_V3 (const stateN0 &inicio, const ubicacion &final,
+									const vector<vector<unsigned char>> &mapa);
+
 
 
   private:

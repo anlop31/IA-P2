@@ -13,32 +13,44 @@ Action ComportamientoJugador::think(Sensores sensores)
 {
 	Action accion = actIDLE;
 
+	if (sensores.nivel != 4) {
+		if (!hayPlan) {
+			cout << "Calculamos un nuevo plan" << endl;
+			c_state.jugador.f = sensores.posF;
+			c_state.jugador.c = sensores.posC;
+			c_state.jugador.brujula == sensores.sentido;
+			c_state.colaborador.f = sensores.CLBposF;
+			c_state.colaborador.c = sensores.CLBposC;
+			c_state.colaborador.brujula = sensores.CLBsentido;
+			goal.f = sensores.destinoF;
+			goal.c = sensores.destinoC;
 
-	if (!hayPlan) {
-		// Invocar al método de búsqueda
-		c_state.jugador.f = sensores.posF;
-		c_state.jugador.c = sensores.posC;
-		c_state.jugador.brujula == sensores.sentido;
-		c_state.colaborador.f = sensores.CLBposF;
-		c_state.colaborador.c = sensores.CLBposC;
-		c_state.colaborador.brujula = sensores.CLBsentido;
-		goal.f = sensores.destinoF;
-		goal.c = sensores.destinoC;
+			switch (sensores.nivel) {
+				case 0: plan = anchuraSoloJugador_V3 (c_state, goal, mapaResultado);
+					break;
+				case 1: // Incluir aquí la llamada al alg. búsqueda del nivel 1
+					cout << "Pendiente de implementar el nivel 1" << endl;
+					break;
+				case 2: // Incluir aquí la llamada al alg. búsqueda del nivel 2
+					cout << "Pendiente de implementar el nivel 2" << endl;
+					break;
+				case 3: // Incluir aquí la llamada al alg. búsqueda del nivel 3
+					cout << "Pendiente de implementar el nivel 3" << endl;
+					break;
+			}
 
-		// hayPlan = anchuraSoloJugador(c_state, goal, mapaResultado);
-		// if (hayPlan) cout << "Se encontro un plan" << endl;
-
-		plan = anchuraSoloJugador_V2(c_state, goal, mapaResultado);
-		visualizarPlan(c_state, plan);
-		hayPlan = true;
+			if (plan.size() > 0) {
+				accion = plan.front();
+				plan.pop_front();
+			}
+			if (plan.size() == 0) {
+				cout << "Se completó el plan" << endl;
+				hayPlan = false;
+			}
+		}
 	}
-	if (hayPlan and plan.size() > 0) {
-		accion = plan.front();
-		plan.pop_front();
-	}
-	if (plan.size() == 0) {
-		cout << "Se completo el plan\n";
-		hayPlan = false;
+	else {
+		// Incluir aquí la solución al nivel 4
 	}
 
 	return accion;
@@ -395,6 +407,123 @@ list<Action> ComportamientoJugador::anchuraSoloJugador_V2 (const stateN0 &inicio
 		cout << "Encontrado un plan: ";
 		PintaPlan(current_node.secuencia);
 	}
+
+	return plan;
+}
+
+
+list<Action> ComportamientoJugador::anchuraSoloJugador_V3 (const stateN0 &inicio, const ubicacion &final,
+									const vector<vector<unsigned char>> &mapa)
+{
+	nodeN0 current_node; 				// Nodo actual
+	list<nodeN0> frontier;				// Lista de estados pendientes de explorar
+	set<nodeN0> explored;				// Lista de estados ya explorados
+	list<Action> plan;
+	current_node.st = inicio;
+
+
+	// Variable que determina si ya se ha encontrado un nodo que satisface la 
+	// condicion de ser solucion.
+	bool solutionFound = (current_node.st.jugador.f == final.f and
+						  current_node.st.jugador.c == final.c);
+
+	frontier.push_back(current_node);	
+
+
+	while (!frontier.empty() and !solutionFound) {
+		frontier.pop_front();
+		explored.insert(current_node); // ahora es insert
+
+		// Generar hijo actWALK
+		nodeN0 child_walk = current_node;
+		child_walk.st = apply(actWALK, current_node.st, mapa);
+		child_walk.secuencia.push_back(actWALK); ////
+
+		if (child_walk.st.jugador.f == final.f and child_walk.st.jugador.c == final.c) {
+			current_node = child_walk;
+			solutionFound = true;
+			cout << "solutionfound!!!!" << endl;
+		}
+		// else if (!Find(child_walk.st, frontier) and !Find(child_walk.st, explored)) {
+		// 	frontier.push_back(child_walk);
+		// }
+		else if (explored.find(child_walk) == explored.end()) {
+			frontier.push_back(child_walk);
+		}
+
+		if (!solutionFound) {
+			// Generar hijo actRUN
+			nodeN0 child_run = current_node;
+			child_run.st = apply(actRUN, current_node.st, mapa);
+			child_run.secuencia.push_back(actRUN);
+			
+			if (child_run.st.jugador.f == final.f and child_run.st.jugador.c == final.c) {
+				current_node = child_run;
+				solutionFound = true;
+				cout << "solutionfound!!!!" << endl;
+			}
+			// else if (!Find(child_run.st, frontier) and !Find(child_run.st, explored)) {
+			// 	frontier.push_back(child_run);
+			// }
+			else if (explored.find(child_run) == explored.end()) {
+				frontier.push_back(child_run);
+			}
+		}
+
+		if (!solutionFound) {
+			// Generar hijo actTURN_L
+			nodeN0 child_turnl = current_node;
+			child_turnl.st = apply(actTURN_L, current_node.st, mapa);
+			child_turnl.secuencia.push_back(actTURN_L);
+			
+			// if (!Find(child_turnl.st, frontier) and !Find(child_turnl.st, explored)) {
+			// 	frontier.push_back(child_turnl);
+			// }
+
+			// nuevo
+			if (explored.find(child_turnl) == explored.end()) {
+				frontier.push_back(child_turnl);
+			}
+
+			// Generar hijo actTURN_SR
+			nodeN0 child_turnsr = current_node;
+			child_turnsr.st = apply(actTURN_SR, current_node.st, mapa);
+			child_turnsr.secuencia.push_back(actTURN_SR);
+			
+			// if (!Find(child_turnsr.st, frontier) and !Find(child_turnsr.st, explored)) {
+			// 	frontier.push_back(child_turnsr);
+			// }
+
+			if (explored.find(child_turnsr) == explored.end()) {
+				frontier.push_back(child_turnsr);
+			}
+		}
+
+		if (!solutionFound and !frontier.empty()) {
+			current_node = frontier.front();
+
+			while (!frontier.empty() and explored.find(current_node) != explored.end()) {
+				frontier.pop_front();
+				if (!frontier.empty()) {
+					current_node = frontier.front();
+				}
+			}
+		}
+
+		cout << "Plan hasta ahora: ";
+		PintaPlan(current_node.secuencia);
+		cout << endl;
+
+	}
+
+	if (solutionFound) {
+		plan = current_node.secuencia;
+		cout << "Encontrado un plan: ";
+		PintaPlan(current_node.secuencia);
+		cout << "dentro de solution found con " << current_node.secuencia.size() << " pasos" << endl;
+	}
+
+	cout << "tamano solucion: " << current_node.secuencia.size() << " pasos" << endl;
 
 	return plan;
 }
