@@ -62,10 +62,15 @@ class ComportamientoJugador : public Comportamiento {
     ubicacion nextCasilla (const ubicacion &pos);
     stateN0 apply (const Action &a, const stateN0 &st, const vector<vector<unsigned char>> mapa);
     bool Find (const stateN0 &item, const list<stateN0> &lista);
+    bool Find (const stateN0 &item, const list<nodeN0> &lista);
     void anularMatriz (vector<vector<unsigned char>> &matriz);
     void visualizarPlan (const stateN0 &st, const list<Action> &plan);
+    void PintaPlan (const list<Action> &plan);
 
 
+
+    list<Action> anchuraSoloJugador_V2 (const stateN0 &inicio, const ubicacion &final,
+									const vector<vector<unsigned char>> &mapa);
 
 
   private:

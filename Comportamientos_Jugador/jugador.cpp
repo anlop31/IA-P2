@@ -25,8 +25,12 @@ Action ComportamientoJugador::think(Sensores sensores)
 		goal.f = sensores.destinoF;
 		goal.c = sensores.destinoC;
 
-		hayPlan = anchuraSoloJugador(c_state, goal, mapaResultado);
-		if (hayPlan) cout << "Se encontro un plan" << endl;
+		// hayPlan = anchuraSoloJugador(c_state, goal, mapaResultado);
+		// if (hayPlan) cout << "Se encontro un plan" << endl;
+
+		plan = anchuraSoloJugador_V2(c_state, goal, mapaResultado);
+		visualizarPlan(c_state, plan);
+		hayPlan = true;
 	}
 	if (hayPlan and plan.size() > 0) {
 		accion = plan.front();
@@ -218,6 +222,15 @@ bool ComportamientoJugador::Find (const stateN0 &item, const list<stateN0> &list
 	return ( !( it == lista.end() ) );
 }
 
+bool ComportamientoJugador::Find (const stateN0 &item, const list<nodeN0> &lista) {
+	auto it = lista.begin();
+	while ( it != lista.end() and !( it->st == item ) ) {
+		it++;
+	}
+
+	return ( !( it == lista.end() ) );
+}
+
 void ComportamientoJugador::anularMatriz (vector<vector<unsigned char>> &matriz) {
 	for (int i = 0; i < matriz.size(); i++) {
 		for (int j = 0; j < matriz[0].size(); j++) {
@@ -276,4 +289,112 @@ void ComportamientoJugador::visualizarPlan (const stateN0 &st, const list<Action
 		it++;
 	}
 	
+}
+
+void ComportamientoJugador::PintaPlan (const list<Action> &plan)
+{
+	auto it = plan.begin();
+	
+	while (it != plan.end())
+	{
+		if (*it == actWALK) cout << "W ";
+		else if (*it == actRUN) cout << "R ";
+		else if (*it == actTURN_SR) cout << "r ";
+		else if (*it == actTURN_L) cout << "L ";
+		else if (*it == act_CLB_WALK) cout << "cW ";
+		else if (*it == act_CLB_TURN_SR) cout << "cr ";
+		else if (*it == act_CLB_STOP) cout << "cS ";
+		else if (*it == actIDLE) cout << "I ";
+		else cout << "-_ ";
+
+		it++;
+	}
+
+	cout << " (" << plan.size() << " acciones)" << endl;
+}
+
+list<Action> ComportamientoJugador::anchuraSoloJugador_V2 (const stateN0 &inicio, const ubicacion &final,
+									const vector<vector<unsigned char>> &mapa)
+{
+	nodeN0 current_node; 				// Nodo actual
+	list<nodeN0> frontier;				// Lista de estados pendientes de explorar
+	list<nodeN0> explored;				// Lista de estados ya explorados
+	list<Action> plan;
+	current_node.st = inicio;
+
+
+	// Variable que determina si ya se ha encontrado un nodo que satisface la 
+	// condicion de ser solucion.
+	bool solutionFound = (current_node.st.jugador.f == final.f and
+						  current_node.st.jugador.c == final.c);
+
+	frontier.push_back(current_node);	
+
+
+	while (!frontier.empty() and !solutionFound) {
+		frontier.pop_front();
+		explored.push_back(current_node);
+
+		// Generar hijo actWALK
+		nodeN0 child_walk = current_node;
+		child_walk.st = apply(actWALK, current_node.st, mapa);
+		child_walk.secuencia.push_back(actWALK);
+
+		if (child_walk.st.jugador.f == final.f and child_walk.st.jugador.c == final.c) {
+			current_node = child_walk;
+			solutionFound = true;
+
+		}
+		else if (!Find(child_walk.st, frontier) and !Find(child_walk.st, explored)) {
+			frontier.push_back(child_walk);
+		}
+
+		if (!solutionFound) {
+			// Generar hijo actRUN
+			nodeN0 child_run = current_node;
+			child_run.st = apply(actRUN, current_node.st, mapa);
+			child_run.secuencia.push_back(actRUN);
+			
+			if (child_run.st.jugador.f == final.f and child_run.st.jugador.c == final.c) {
+				current_node = child_run;
+				solutionFound = true;
+			}
+			else if (!Find(child_run.st, frontier) and !Find(child_run.st, explored)) {
+				frontier.push_back(child_run);
+			}
+		}
+
+		if (!solutionFound) {
+			// Generar hijo actTURN_L
+			nodeN0 child_turnl = current_node;
+			child_turnl.st = apply(actTURN_L, current_node.st, mapa);
+			child_turnl.secuencia.push_back(actTURN_L);
+			
+			if (!Find(child_turnl.st, frontier) and !Find(child_turnl.st, explored)) {
+				frontier.push_back(child_turnl);
+			}
+
+			// Generar hijo actTURN_SR
+			nodeN0 child_turnsr = current_node;
+			child_turnsr.st = apply(actTURN_SR, current_node.st, mapa);
+			child_turnsr.secuencia.push_back(actTURN_SR);
+			
+			if (!Find(child_turnsr.st, frontier) and !Find(child_turnsr.st, explored)) {
+				frontier.push_back(child_turnsr);
+			}
+		}
+
+		if (!solutionFound and !frontier.empty()) {
+			current_node = frontier.front();
+		}
+
+	}
+
+	if (solutionFound) {
+		plan = current_node.secuencia;
+		cout << "Encontrado un plan: ";
+		PintaPlan(current_node.secuencia);
+	}
+
+	return plan;
 }
