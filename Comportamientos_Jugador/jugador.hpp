@@ -193,6 +193,10 @@ public:
   bool Find(const stateN0 &item, const list<stateN0> &lista);
   bool Find(const stateN0 &item, const list<nodeN0> &lista);
 
+  bool Find (const stateN1 &item, const list<stateN1> &lista);
+  bool Find (const stateN1 &item, const list<nodeN1> &lista);
+
+
   //// NIVEL 0: ANCHURA JUGADOR
   bool anchuraSoloJugador(const stateN0 &inicio, const ubicacion &final, const vector<vector<unsigned char>> &mapa);
   list<Action> anchuraSoloJugador_V2(const stateN0 &inicio, const ubicacion &final,
@@ -206,6 +210,7 @@ public:
   stateN1 applyN1(const Action &a, const stateN1 &st, const vector<vector<unsigned char>> mapa);
   list<Action> anchuraColaboradorN1(const stateN1 &inicio, const ubicacion &final,
                                     const vector<vector<unsigned char>> &mapa);
+  bool jugadorVeColaborador(const ubicacion & j, const ubicacion & s);
 
   //// NIVEL 2: COSTE UNIFORME JUGADOR
   list<Action> CosteUniforme(const stateN2 &inicio, const ubicacion &final,
@@ -220,6 +225,7 @@ private:
   list<Action> plan; // Almacena el plan en ejecución
   bool hayPlan;      // Si es true indica que se está siguiendo un plan
   stateN0 c_state;
+  stateN1 c_state1;
   stateN2 c_state2;
   ubicacion goal;
 
