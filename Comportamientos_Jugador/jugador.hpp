@@ -188,6 +188,7 @@ public:
   void anularMatriz(vector<vector<unsigned char>> &matriz);
   void PintaPlan(const list<Action> &plan);
   void visualizarPlan(const stateN0 &st, const list<Action> &plan);
+  void visualizarPlan (const stateN1 &st, const list<Action> &plan);
   void visualizarPlan(const stateN2 &st, const list<Action> &plan);
 
   bool Find(const stateN0 &item, const list<stateN0> &lista);
@@ -215,10 +216,15 @@ public:
   //// NIVEL 2: COSTE UNIFORME JUGADOR
   list<Action> CosteUniforme(const stateN2 &inicio, const ubicacion &final,
                              const vector<vector<unsigned char>> &mapa);
+  list<Action> CosteUniforme_V2(const stateN2 &inicio, const ubicacion &final,
+                            const vector<vector<unsigned char>> &mapa);
 
   stateN2 applyN2(const Action &a, const stateN2 &st, const vector<vector<unsigned char>> mapa);
-  list<nodeN2>::iterator estaEnLista(list<nodeN2> &l, const nodeN2 &n); // wuo
-  void insertarEnOrden(list<nodeN2> &l, nodeN2 &n);                     // wuo
+  list<nodeN2>::iterator estaEnLista(list<nodeN2> &l, const nodeN2 &n);
+  void insertarEnOrden(list<nodeN2> &l, nodeN2 &n);                     
+  bool Find (const stateN2 &item, const list<stateN2> &lista);
+  bool Find (const stateN2 &item, const list<nodeN2> &lista);
+
 
 private:
   // Declarar Variables de Estado
