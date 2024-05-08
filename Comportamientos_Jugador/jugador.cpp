@@ -520,7 +520,7 @@ list<Action> ComportamientoJugador::anchuraSoloJugador_V2 (const stateN0 &inicio
 
 	frontier.push_back(current_node);	
 
-
+	// Mientras frontier no esté vacío y la solución no se haya encontrado
 	while (!frontier.empty() and !solutionFound) {
 		frontier.pop_front();
 		explored.push_back(current_node);
@@ -530,30 +530,36 @@ list<Action> ComportamientoJugador::anchuraSoloJugador_V2 (const stateN0 &inicio
 		child_walk.st = apply(actWALK, current_node.st, mapa);
 		child_walk.secuencia.push_back(actWALK);
 
+		// Si se ha llegado al objetivo
 		if (child_walk.st.jugador.f == final.f and child_walk.st.jugador.c == final.c) {
 			current_node = child_walk;
 			solutionFound = true;
 
 		}
+		// Si no se ha llegado a la solución y no encuentra el hijo en explorados
 		else if (!Find(child_walk.st, frontier) and !Find(child_walk.st, explored)) {
 			frontier.push_back(child_walk);
 		}
 
+		// Si todavía no se ha encontrado la solución
 		if (!solutionFound) {
 			// Generar hijo actRUN
 			nodeN0 child_run = current_node;
 			child_run.st = apply(actRUN, current_node.st, mapa);
 			child_run.secuencia.push_back(actRUN);
 			
+			// Si se ha llegado al objetivo
 			if (child_run.st.jugador.f == final.f and child_run.st.jugador.c == final.c) {
 				current_node = child_run;
 				solutionFound = true;
 			}
+			// Si no se encuentra el hijo en explorados
 			else if (!Find(child_run.st, frontier) and !Find(child_run.st, explored)) {
 				frontier.push_back(child_run);
 			}
 		}
 
+		// Si todavía no se ha encontrado la solución generamos hijos turnSR y turnL
 		if (!solutionFound) {
 			// Generar hijo actTURN_L
 			nodeN0 child_turnl = current_node;
@@ -563,6 +569,7 @@ list<Action> ComportamientoJugador::anchuraSoloJugador_V2 (const stateN0 &inicio
 			if (!Find(child_turnl.st, frontier) and !Find(child_turnl.st, explored)) {
 				frontier.push_back(child_turnl);
 			}
+
 
 			// Generar hijo actTURN_SR
 			nodeN0 child_turnsr = current_node;
@@ -574,11 +581,24 @@ list<Action> ComportamientoJugador::anchuraSoloJugador_V2 (const stateN0 &inicio
 			}
 		}
 
+		// if (!solutionFound and !frontier.empty()) {
+		// 	current_node = frontier.front();
+		// }
+
+		// Si no se ha encontrado la solución y abiertos sigue lleno
 		if (!solutionFound and !frontier.empty()) {
-			current_node = frontier.front();
+			current_node = frontier.front(); // Saca el primero de abiertos
+
+			// Mientras abiertos tenga nodos y current_node ya esté en explorados
+			while (!frontier.empty() and Find(current_node.st, explored)) {
+				frontier.pop_front(); // Sacamos el primero de la lista de abiertos
+				if (!frontier.empty()) {
+					current_node = frontier.front(); // El nodo actual ahora es el primero de abiertos
+				}
+			}
 		}
 
-	}
+	} // fin while (!frontier.empty() and !solutionFound)
 
 	if (solutionFound) {
 		plan = current_node.secuencia;
@@ -609,7 +629,6 @@ list<Action> ComportamientoJugador::anchuraSoloJugador_V3 (const stateN0 &inicio
 
 	// Mientras frontier no esté vacío y la solución no se haya encontrado
 	while (!frontier.empty() and !solutionFound) {
-		contador++;
 
 		frontier.pop_front(); // Se saca el primer nodo de frontier
 		explored.insert(current_node); // Se marca el nodo como explorado
@@ -824,7 +843,7 @@ list<Action> ComportamientoJugador::anchuraColaboradorN1(const stateN1 & inicio,
 		// Si el jugador ve al colaborador se crean los hijos del colaborador
 		if (jugadorVeColaborador(current_node.st.jugador, current_node.st.colaborador))
 		{
-			
+			cout << "jugador (" << current_node.st.jugador.f << ", " << current_node.st.jugador.c << ") ha visto a clb (" << current_node.st.colaborador.f << ", " << current_node.st.colaborador.c << endl;
 			// Generar hijo act_CLB_WALK
 			nodeN1 child_clb_walk = current_node;
 			child_clb_walk.st = applyN1(act_CLB_WALK, current_node.st, mapa);
@@ -1413,6 +1432,7 @@ list<nodeN2>::iterator ComportamientoJugador::estaEnLista(list<nodeN2> & l, cons
 
 	return it;
 }
+
 
 list<Action> ComportamientoJugador::CosteUniformeconSet(const stateN2 &inicio, const ubicacion &final,
 													const vector<vector<unsigned char>> &mapa)

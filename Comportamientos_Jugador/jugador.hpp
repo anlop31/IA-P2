@@ -57,9 +57,9 @@ struct stateN1
   ubicacion colaborador;
   Action ultimaOrdenColaborador;
   
-  bool operator==(const stateN1 &x) const
+  bool operator==(const stateN1 &n) const
   {
-    if (jugador == x.jugador and colaborador == x.colaborador)
+    if (jugador == n.jugador and colaborador == n.colaborador)
       return true;
     else
       return false;
@@ -70,8 +70,8 @@ struct nodeN1
 {
   stateN1 st;
   list<Action> secuencia;
-  bool operator==(const nodeN1 &b) const {
-    return (st == b.st);
+  bool operator==(const nodeN1 &n) const {
+    return (st == n.st);
   }
 
   bool operator<(const nodeN1 &b) const {
@@ -112,14 +112,14 @@ struct stateN2
   Action ultimaOrdenColaborador;
   int coste;
 
-  bool operator==(const stateN2 &x) const
+  bool operator==(const stateN2 &n) const
   {
-    if (jugador == x.jugador and               // misma ubicación
-        colaborador.f == x.colaborador.f and   // misma fila colaborador
-        colaborador.c == x.colaborador.c and   // misma columna colaborador
-        zapatillas_jug == x.zapatillas_jug and // zapatillas jugador
-        bikini_jug == x.bikini_jug)
-    { // bikini jugador
+    if (jugador == n.jugador and               // misma ubicación
+        colaborador.f == n.colaborador.f and   // misma fila colaborador
+        colaborador.c == n.colaborador.c and   // misma columna colaborador
+        zapatillas_jug == n.zapatillas_jug and // zapatillas jugador
+        bikini_jug == n.bikini_jug)            // bikini jugador
+    { 
       return true;
     }
     else
@@ -235,8 +235,6 @@ private:
   stateN2 c_state2;
   ubicacion goal;
 
-  // debug
-  int contador = 0;
 };
 
 #endif
