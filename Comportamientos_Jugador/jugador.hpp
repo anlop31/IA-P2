@@ -216,7 +216,7 @@ public:
   //// NIVEL 2: COSTE UNIFORME JUGADOR
   list<Action> CosteUniforme(const stateN2 &inicio, const ubicacion &final,
                              const vector<vector<unsigned char>> &mapa);
-  list<Action> CosteUniforme_V2(const stateN2 &inicio, const ubicacion &final,
+  list<Action> CosteUniformeconSet(const stateN2 &inicio, const ubicacion &final,
                             const vector<vector<unsigned char>> &mapa);
 
   stateN2 applyN2(const Action &a, const stateN2 &st, const vector<vector<unsigned char>> mapa);

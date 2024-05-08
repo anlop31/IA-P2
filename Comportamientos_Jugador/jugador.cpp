@@ -52,7 +52,7 @@ Action ComportamientoJugador::think(Sensores sensores)
 					break;
 				case 1: plan = anchuraColaboradorN1 (c_state1, goal, mapaResultado);
 					break;
-				case 2: plan = CosteUniforme_V2(c_state2, goal, mapaResultado);
+				case 2: plan = CosteUniforme(c_state2, goal, mapaResultado);
 					break;
 				case 3: // Incluir aquí la llamada al alg. búsqueda del nivel 3
 					cout << "Pendiente de implementar el nivel 3" << endl;
@@ -614,9 +614,6 @@ list<Action> ComportamientoJugador::anchuraSoloJugador_V3 (const stateN0 &inicio
 		frontier.pop_front(); // Se saca el primer nodo de frontier
 		explored.insert(current_node); // Se marca el nodo como explorado
 
-		// cout << "______current_node ubicacion: " << current_node.st.jugador.f << ", " << current_node.st.jugador.c << endl;
-		// cout << "______sentido: " << current_node.st.jugador.brujula << endl;
-
 		// Generar hijo actWALK
 		nodeN0 child_walk = current_node;
 		child_walk.st = apply(actWALK, current_node.st, mapa);
@@ -626,7 +623,6 @@ list<Action> ComportamientoJugador::anchuraSoloJugador_V3 (const stateN0 &inicio
 		if (child_walk.st.jugador.f == final.f and child_walk.st.jugador.c == final.c) {
 			current_node = child_walk;
 			solutionFound = true;
-			// cout << "solutionfound" << endl;
 		}
 		// Si no se ha llegado a la solución y no encuentra el hijo en explorados
 		else if (explored.find(child_walk) == explored.end()) {
@@ -694,18 +690,6 @@ list<Action> ComportamientoJugador::anchuraSoloJugador_V3 (const stateN0 &inicio
 		cout << "Encontrado un plan: ";
 		PintaPlan(current_node.secuencia);
 	}
-
-
-	// DEBUG
-		
-		// plan = current_node.secuencia;
-		// PintaPlan(current_node.secuencia);
-		
-	// cout << endl; cout << "Resultados:" << endl;
-	// cout << "--> Tamano secuencia: " << current_node.secuencia.size() << " pasos" << endl;
-	// cout << "\tCurrent node ubicacion: " << current_node.st.jugador.f << ", " << current_node.st.jugador.c << endl;
-	// cout << "--> Solucion encontrada?: " << (solutionFound ? "si" : "no") << endl;
-	// cout << "--> Contador: " << contador << endl;
 
 	return plan;
 }
@@ -840,7 +824,7 @@ list<Action> ComportamientoJugador::anchuraColaboradorN1(const stateN1 & inicio,
 		// Si el jugador ve al colaborador se crean los hijos del colaborador
 		if (jugadorVeColaborador(current_node.st.jugador, current_node.st.colaborador))
 		{
-
+			
 			// Generar hijo act_CLB_WALK
 			nodeN1 child_clb_walk = current_node;
 			child_clb_walk.st = applyN1(act_CLB_WALK, current_node.st, mapa);
@@ -864,16 +848,15 @@ list<Action> ComportamientoJugador::anchuraColaboradorN1(const stateN1 & inicio,
 				child_clb_sr.st = applyN1(act_CLB_TURN_SR, current_node.st, mapa);
 				child_clb_sr.secuencia.push_back(act_CLB_TURN_SR);
 
-
 				if (!Find(child_clb_sr.st, frontier) and !Find(child_clb_sr.st, explored)) {
 					frontier.push_back(child_clb_sr);
 				}
+
 
 				// Generar hijo act_CLB_STOP
 				nodeN1 child_clb_stop = current_node;
 				child_clb_stop.st = applyN1(act_CLB_STOP, current_node.st, mapa);
 				child_clb_stop.secuencia.push_back(act_CLB_STOP);
-
 
 				if (!Find(child_clb_stop.st, frontier) and !Find(child_clb_stop.st, explored)) {
 					frontier.push_back(child_clb_stop);
@@ -946,9 +929,6 @@ list<Action> ComportamientoJugador::anchuraColaboradorN1(const stateN1 & inicio,
 		cout << "Encontrado un plan: ";
 		PintaPlan(current_node.secuencia);
 	}
-
-	// Si no recibe orden de jugador, meter la ultima accion del colaborador.
-	// Acceder a stateN1 ultimaAccionColaborador
 
 	return plan;
 }
@@ -1238,6 +1218,7 @@ bool ComportamientoJugador::jugadorVeColaborador(const ubicacion & jug, const ub
 	return false;
 }
 
+
 ///// NIVEL 2
 stateN2 ComportamientoJugador::applyN2(const Action &a, const stateN2 &st, const vector<vector<unsigned char>> mapa)
 {
@@ -1248,44 +1229,39 @@ stateN2 ComportamientoJugador::applyN2(const Action &a, const stateN2 &st, const
 	switch (a)
 	{
 	case actWALK: // si prox casilla es transitable y no está ocupada por el colaborador
+
 		sig_ubicacion = nextCasilla(st.jugador);
 		if (casillaTransitable(sig_ubicacion, mapa) and
 			!(sig_ubicacion.f == st.colaborador.f and sig_ubicacion.c == st.colaborador.c))
 		{
 
-			// AÑADIDO: segun el tipo de casilla, añade coste
-			if (tipo_casilla == 'A')
-			{
+			// Coste según la casilla que transita
+			if (tipo_casilla == 'A') {
 				if (!st.bikini_jug)
 					st_result.coste += 100;
 				else
 					st_result.coste += 10;
 			}
-			else if (tipo_casilla == 'B')
-			{
+			else if (tipo_casilla == 'B') {
 				if (!st.zapatillas_jug)
 					st_result.coste += 50;
 				else
 					st_result.coste += 15;
 			}
-			else if (tipo_casilla == 'T')
-			{
+			else if (tipo_casilla == 'T') {
 				st_result.coste += 2;
 			}
-			else
-			{
+			else {
 				st_result.coste += 1;
 			}
 
 			// ver si ha pasado a una casilla bikini o de zapas
 			char siguiente_tipo = mapa[st_result.jugador.f][st_result.jugador.c];
-			if (siguiente_tipo == 'K')
-			{
+			if (siguiente_tipo == 'K') {
 				st_result.bikini_jug = true;
 				st_result.zapatillas_jug = false;
 			}
-			else if (siguiente_tipo == 'D')
-			{
+			else if (siguiente_tipo == 'D') {
 				st_result.bikini_jug = false;
 				st_result.zapatillas_jug = true;
 			}
@@ -1293,7 +1269,9 @@ stateN2 ComportamientoJugador::applyN2(const Action &a, const stateN2 &st, const
 			st_result.jugador = sig_ubicacion;
 		}
 		break;
+
 	case actRUN: // si prox 2 casillas son transitables y no está ocupada por el colaborador
+
 		sig_ubicacion = nextCasilla(st.jugador);
 		if (casillaTransitable(sig_ubicacion, mapa) and
 			!(sig_ubicacion.f == st.colaborador.f and sig_ubicacion.c == st.colaborador.c))
@@ -1303,26 +1281,22 @@ stateN2 ComportamientoJugador::applyN2(const Action &a, const stateN2 &st, const
 				!(sig_ubicacion2.f == st.colaborador.f and sig_ubicacion2.c == st.colaborador.c))
 			{
 
-				if (tipo_casilla == 'A')
-				{
+				if (tipo_casilla == 'A') {
 					if (!st.bikini_jug)
 						st_result.coste += 150;
 					else
 						st_result.coste += 15;
 				}
-				else if (tipo_casilla == 'B')
-				{
+				else if (tipo_casilla == 'B') {
 					if (!st.zapatillas_jug)
 						st_result.coste += 75;
 					else
 						st_result.coste += 25;
 				}
-				else if (tipo_casilla == 'T')
-				{
+				else if (tipo_casilla == 'T') {
 					st_result.coste += 3;
 				}
-				else
-				{
+				else {
 					st_result.coste += 1;
 				}
 
@@ -1330,58 +1304,55 @@ stateN2 ComportamientoJugador::applyN2(const Action &a, const stateN2 &st, const
 			}
 		}
 		break;
+
 	case actTURN_L:
-		if (tipo_casilla == 'A')
-		{
+
+		if (tipo_casilla == 'A') {
 			if (!st.bikini_jug)
 				st_result.coste += 30;
 			else
 				st_result.coste += 5;
 		}
-		else if (tipo_casilla == 'B')
-		{
+		else if (tipo_casilla == 'B') {
 			if (!st.zapatillas_jug)
 				st_result.coste += 7;
 			else
 				st_result.coste += 1;
 		}
-		else if (tipo_casilla == 'T')
-		{
+		else if (tipo_casilla == 'T') {
 			st_result.coste += 2;
 		}
-		else
-		{
+		else {
 			st_result.coste += 1;
 		}
 
 		st_result.jugador.brujula = static_cast<Orientacion>((st_result.jugador.brujula + 6) % 8);
 		break;
+
 	case actTURN_SR:
-		if (tipo_casilla == 'A')
-		{
+
+		if (tipo_casilla == 'A') {
 			if (!st.bikini_jug)
 				st_result.coste += 10;
 			else
 				st_result.coste += 2;
 		}
-		else if (tipo_casilla == 'B')
-		{
+		else if (tipo_casilla == 'B') {
 			if (!st.zapatillas_jug)
 				st_result.coste += 5;
 			else
 				st_result.coste += 1;
 		}
-		else if (tipo_casilla == 'T')
-		{
+		else if (tipo_casilla == 'T') {
 			st_result.coste += 1;
 		}
-		else
-		{
+		else {
 			st_result.coste += 1;
 		}
 
 		st_result.jugador.brujula = static_cast<Orientacion>((st_result.jugador.brujula + 1) % 8);
 		break;
+
 	}
 
 	return st_result;
@@ -1443,7 +1414,7 @@ list<nodeN2>::iterator ComportamientoJugador::estaEnLista(list<nodeN2> & l, cons
 	return it;
 }
 
-list<Action> ComportamientoJugador::CosteUniforme(const stateN2 &inicio, const ubicacion &final,
+list<Action> ComportamientoJugador::CosteUniformeconSet(const stateN2 &inicio, const ubicacion &final,
 													const vector<vector<unsigned char>> &mapa)
 		{
 			list<nodeN2> frontier; // Nodos a ser explorados
@@ -1570,14 +1541,13 @@ list<Action> ComportamientoJugador::CosteUniforme(const stateN2 &inicio, const u
 		}
 
 
-
-list<Action> ComportamientoJugador::CosteUniforme_V2(const stateN2 &inicio, const ubicacion &final,
+list<Action> ComportamientoJugador::CosteUniforme(const stateN2 &inicio, const ubicacion &final,
 													const vector<vector<unsigned char>> &mapa)
 {
-	list<nodeN2> frontier; // Nodos a ser explorados
-	nodeN2 current_node;   // Nodo actual
+	list<nodeN2> frontier;  // Nodos a ser explorados
+	nodeN2 current_node;    // Nodo actual
 	list<nodeN2> explored;  // Nodos explorados
-	list<Action> plan;	   // Secuencia de acciones (plan)
+	list<Action> plan;	    // Secuencia de acciones (plan)
 	current_node.st = inicio;
 
 	bool solutionFound = (current_node.st.jugador.f == final.f and
@@ -1587,9 +1557,10 @@ list<Action> ComportamientoJugador::CosteUniforme_V2(const stateN2 &inicio, cons
 	// Mientras frontier no esté vacío y la solución no se haya encontrado
 	while (!frontier.empty() and !solutionFound)
 	{
-		frontier.pop_front();		   // Se saca el primer nodo de frontier
+		frontier.pop_front();		      // Se saca el primer nodo de frontier
 		explored.push_back(current_node); // Se marca el nodo como explorado
 
+		// Añadir hijo actWALK
 		nodeN2 child_walk = current_node;
 		child_walk.st = applyN2(actWALK, current_node.st, mapa);
 
@@ -1625,14 +1596,15 @@ list<Action> ComportamientoJugador::CosteUniforme_V2(const stateN2 &inicio, cons
 		}
 
 		/////
+
 		if (!solutionFound) {
+			// Añadir hijo actRUN, si no se ha llegado a solución
 			nodeN2 child_run = current_node;
 			child_run.st = applyN2(actRUN, current_node.st, mapa);
 
 			if (!frontier.empty())
 			{
 				auto itl = estaEnLista(frontier, child_run);
-
 
 				if (child_run.st.jugador.f == final.f and child_run.st.jugador.c == final.c) {
 					child_run.secuencia.push_back(actRUN);
@@ -1649,7 +1621,7 @@ list<Action> ComportamientoJugador::CosteUniforme_V2(const stateN2 &inicio, cons
 				// si el nodo hijo ya está en frontier pero tiene un coste mayor que el nuevo coste calculado
 				else if (itl != frontier.end() and (*itl).st.coste > child_run.st.coste)
 				{
-					child_run.secuencia.push_back(actRUN); // actualiza la secuencia del nodo hijo con actTURN_L
+					child_run.secuencia.push_back(actRUN); 		// actualiza la secuencia del nodo hijo con actTURN_L
 					frontier.erase(itl);						// elimina la versión antigua de frontier
 					insertarEnOrden(frontier, child_run);		// inserta el nodo hijo actualizado a frontier
 				}
@@ -1662,10 +1634,10 @@ list<Action> ComportamientoJugador::CosteUniforme_V2(const stateN2 &inicio, cons
 			}
 		}
 
-
 		/////
 
 		if (!solutionFound){
+			// Añadir hijo actTURN_L
 			nodeN2 child_turnl = current_node;
 			child_turnl.st = applyN2(actTURN_L, current_node.st, mapa);
 
@@ -1694,9 +1666,11 @@ list<Action> ComportamientoJugador::CosteUniforme_V2(const stateN2 &inicio, cons
 				frontier.push_back(child_turnl);
 			}
 		}
+
 		/////
 
 		if (!solutionFound) {
+			// Añadir hijo actTURN_SR
 			nodeN2 child_turnsr = current_node;
 			child_turnsr.st = applyN2(actTURN_SR, current_node.st, mapa);
 
@@ -1730,9 +1704,6 @@ list<Action> ComportamientoJugador::CosteUniforme_V2(const stateN2 &inicio, cons
 
 		if (!solutionFound and !frontier.empty())
 			current_node = frontier.front();
-
-		// if (current_node.st.jugador.f == final.f and current_node.st.jugador.c == final.c)
-		// 	solutionFound = true;
 
 	} // fin while
 
